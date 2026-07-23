@@ -1,0 +1,645 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1, user-scalable=no">
+<title>Myhorizon — Restock Tally</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Oswald:wght@500;600;700&family=Inter:wght@400;500;600;700&display=swap');
+
+  :root{
+    --bg: #101114;
+    --surface: #1a1c21;
+    --surface-2: #22252c;
+    --surface-3: #2b2e36;
+    --border: #34373f;
+    --text: #f1efe9;
+    --text-dim: #9a9da6;
+    --text-faint: #62656d;
+    --amber: #f2b705;
+    --amber-dim: #4a3c08;
+    --amber-glow: rgba(242,183,5,0.16);
+    --teal: #35c9a3;
+    --teal-dim: #123a30;
+    --red: #ff6b6b;
+  }
+
+  *{box-sizing:border-box; -webkit-tap-highlight-color: transparent;}
+  html,body{margin:0; padding:0;}
+  body{
+    background:
+      radial-gradient(circle at 15% 0%, rgba(242,183,5,0.05), transparent 45%),
+      var(--bg);
+    color:var(--text);
+    font-family:'Inter', sans-serif;
+    min-height:100vh;
+    padding-bottom:40px;
+  }
+
+  .wrap{max-width:560px; margin:0 auto; padding:0 16px;}
+
+  /* ---------- HEADER ---------- */
+  header{
+    padding:28px 0 18px;
+    border-bottom:1px solid var(--border);
+    margin-bottom:18px;
+  }
+  .brand{
+    display:flex;
+    align-items:baseline;
+    gap:10px;
+  }
+  .brand .mark{
+    width:34px; height:34px;
+    border-radius:8px;
+    background:linear-gradient(135deg, var(--amber), #b98803);
+    display:flex; align-items:center; justify-content:center;
+    font-family:'Oswald', sans-serif;
+    font-weight:700;
+    color:#141414;
+    font-size:18px;
+    flex-shrink:0;
+    transform: translateY(2px);
+  }
+  h1{
+    font-family:'Oswald', sans-serif;
+    font-weight:700;
+    font-size:26px;
+    letter-spacing:0.5px;
+    text-transform:uppercase;
+    margin:0;
+  }
+  .sub{
+    font-size:12.5px;
+    color:var(--text-dim);
+    letter-spacing:1.5px;
+    text-transform:uppercase;
+    margin-top:6px;
+    padding-left:44px;
+  }
+
+  /* ---------- TABS ---------- */
+  .tabs{
+    display:grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap:8px;
+    margin-bottom:18px;
+  }
+  .tab{
+    background:var(--surface);
+    border:1px solid var(--border);
+    border-radius:10px;
+    padding:10px 4px 8px;
+    text-align:center;
+    cursor:pointer;
+    transition:0.15s;
+    user-select:none;
+  }
+  .tab:active{transform:scale(0.97);}
+  .tab.active{
+    border-color:var(--amber);
+    background:linear-gradient(180deg, var(--amber-glow), transparent);
+  }
+  .tab-name{
+    font-family:'Oswald', sans-serif;
+    font-size:12.5px;
+    font-weight:600;
+    letter-spacing:0.4px;
+    text-transform:uppercase;
+  }
+  .tab-progress{
+    font-size:10.5px;
+    color:var(--text-dim);
+    margin-top:3px;
+    font-variant-numeric:tabular-nums;
+  }
+  .tab.active .tab-progress{color:var(--amber);}
+
+  /* ---------- CATEGORY HEADER ---------- */
+  .cat-head{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    margin-bottom:14px;
+  }
+  .cat-title{
+    font-family:'Oswald', sans-serif;
+    font-size:19px;
+    font-weight:600;
+    text-transform:uppercase;
+    letter-spacing:0.3px;
+  }
+  .cat-count{
+    display:flex;
+    align-items:center;
+    gap:6px;
+    background:var(--surface);
+    border:1px solid var(--border);
+    border-radius:20px;
+    padding:5px 6px 5px 12px;
+    font-size:12.5px;
+    color:var(--text-dim);
+  }
+  .cat-count b{color:var(--text); font-variant-numeric:tabular-nums;}
+  .stepper-mini{
+    display:flex; align-items:center; gap:2px;
+  }
+  .stepper-mini button{
+    width:22px; height:22px;
+    border-radius:50%;
+    border:1px solid var(--border);
+    background:var(--surface-2);
+    color:var(--text);
+    font-size:13px;
+    line-height:1;
+    cursor:pointer;
+  }
+
+  .instance-banner{
+    font-size:12px;
+    color:var(--amber);
+    background:var(--amber-glow);
+    border:1px solid var(--amber-dim);
+    border-radius:8px;
+    padding:8px 12px;
+    margin-bottom:16px;
+    display:flex;
+    align-items:center;
+    gap:8px;
+  }
+  .instance-banner.done{
+    color:var(--teal);
+    background:rgba(53,201,163,0.08);
+    border-color:var(--teal-dim);
+  }
+
+  /* ---------- ITEM LIST ---------- */
+  .item{
+    background:var(--surface);
+    border:1px solid var(--border);
+    border-radius:14px;
+    padding:14px 14px 14px 16px;
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    margin-bottom:10px;
+    transition:0.15s;
+  }
+  .item.needs{
+    border-color: var(--amber-dim);
+    background: linear-gradient(180deg, var(--amber-glow), var(--surface) 70%);
+  }
+  .item-name{
+    font-size:14.5px;
+    font-weight:500;
+    line-height:1.3;
+    max-width:60%;
+  }
+  .item-name .flag{
+    display:block;
+    font-size:10.5px;
+    color:var(--amber);
+    text-transform:uppercase;
+    letter-spacing:0.5px;
+    margin-top:3px;
+    font-weight:600;
+  }
+  .stepper{
+    display:flex;
+    align-items:center;
+    gap:0;
+    background:var(--surface-2);
+    border-radius:12px;
+    border:1px solid var(--border);
+    overflow:hidden;
+  }
+  .stepper button{
+    width:40px; height:40px;
+    border:none;
+    background:transparent;
+    color:var(--text);
+    font-size:19px;
+    font-weight:600;
+    cursor:pointer;
+    display:flex; align-items:center; justify-content:center;
+  }
+  .stepper button:active{background:var(--surface-3);}
+  .stepper button.minus{color:var(--text-dim);}
+  .stepper .count{
+    width:34px;
+    text-align:center;
+    font-family:'Oswald', sans-serif;
+    font-size:17px;
+    font-weight:600;
+    font-variant-numeric:tabular-nums;
+  }
+  .item.needs .stepper .count{color:var(--amber);}
+
+  /* ---------- ACTION BUTTONS ---------- */
+  .actions{
+    display:flex;
+    gap:10px;
+    margin-top:20px;
+  }
+  .btn{
+    flex:1;
+    border:none;
+    border-radius:12px;
+    padding:15px 10px;
+    font-family:'Oswald', sans-serif;
+    font-size:14px;
+    font-weight:600;
+    text-transform:uppercase;
+    letter-spacing:0.5px;
+    cursor:pointer;
+    transition:0.12s;
+  }
+  .btn:active{transform:scale(0.97);}
+  .btn-primary{
+    background:linear-gradient(135deg, var(--amber), #cf9c04);
+    color:#161616;
+  }
+  .btn-ghost{
+    background:var(--surface);
+    border:1px solid var(--border);
+    color:var(--text-dim);
+    flex:0 0 auto;
+    padding:15px 18px;
+  }
+  .btn-reset{
+    flex:1;
+    color:var(--red);
+    border-color:#4a2323;
+  }
+
+  /* ---------- SUMMARY ---------- */
+  .summary-toggle{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    background:var(--surface);
+    border:1px solid var(--border);
+    border-radius:14px;
+    padding:14px 16px;
+    margin-top:24px;
+    cursor:pointer;
+  }
+  .summary-toggle .lab{
+    font-family:'Oswald', sans-serif;
+    font-size:13.5px;
+    text-transform:uppercase;
+    letter-spacing:0.5px;
+    display:flex; align-items:center; gap:8px;
+  }
+  .chev{transition:0.2s; color:var(--text-dim);}
+  .summary-toggle.open .chev{transform:rotate(180deg);}
+
+  .summary-body{
+    max-height:0;
+    overflow:hidden;
+    transition:max-height 0.25s ease;
+  }
+  .summary-body.open{max-height:2000px;}
+  .summary-group{
+    margin-top:14px;
+    padding-top:14px;
+    border-top:1px dashed var(--border);
+  }
+  .summary-group:first-child{border-top:none;}
+  .summary-group h4{
+    font-family:'Oswald', sans-serif;
+    font-size:12px;
+    text-transform:uppercase;
+    letter-spacing:0.8px;
+    color:var(--text-dim);
+    margin:0 0 8px;
+  }
+  .summary-row{
+    display:flex;
+    justify-content:space-between;
+    padding:7px 0;
+    font-size:13.5px;
+    border-bottom:1px solid var(--surface-2);
+  }
+  .summary-row:last-child{border-bottom:none;}
+  .summary-row .n{
+    font-variant-numeric:tabular-nums;
+    font-weight:700;
+    color:var(--amber);
+    min-width:26px;
+    text-align:right;
+  }
+  .summary-row.zero .n{color:var(--text-faint);}
+  .summary-empty{
+    text-align:center;
+    color:var(--text-faint);
+    font-size:12.5px;
+    padding:10px 0 4px;
+  }
+
+  .reset-all{
+    display:block;
+    width:100%;
+    text-align:center;
+    background:none;
+    border:none;
+    color:var(--text-faint);
+    font-size:12px;
+    padding:22px 0 4px;
+    text-decoration:underline;
+    text-underline-offset:3px;
+    cursor:pointer;
+  }
+
+  /* ---------- TOAST ---------- */
+  .toast{
+    position:fixed;
+    left:50%; bottom:26px;
+    transform:translate(-50%, 20px);
+    background:var(--teal);
+    color:#0d1f1a;
+    font-family:'Oswald', sans-serif;
+    font-weight:600;
+    font-size:13.5px;
+    letter-spacing:0.4px;
+    text-transform:uppercase;
+    padding:12px 22px;
+    border-radius:30px;
+    opacity:0;
+    pointer-events:none;
+    transition:0.25s ease;
+    box-shadow:0 8px 24px rgba(0,0,0,0.4);
+    white-space:nowrap;
+  }
+  .toast.show{opacity:1; transform:translate(-50%, 0);}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header>
+    <div class="brand">
+      <div class="mark">M</div>
+      <h1>Myhorizon</h1>
+    </div>
+    <div class="sub">Restock Tally &middot; Commercial Clean</div>
+  </header>
+
+  <div class="tabs" id="tabs"></div>
+
+  <div id="catHead"></div>
+  <div id="instanceBanner"></div>
+  <div id="itemList"></div>
+
+  <div class="actions">
+    <button class="btn btn-primary" id="logBtn">Log bathroom</button>
+    <button class="btn btn-ghost btn-reset" id="resetBtn">Reset</button>
+  </div>
+
+  <div class="summary-toggle" id="summaryToggle">
+    <span class="lab">📋 Restock summary — grab from supply room</span>
+    <span class="chev">▾</span>
+  </div>
+  <div class="summary-body" id="summaryBody">
+    <div id="summaryContent"></div>
+  </div>
+
+  <button class="reset-all" id="resetAllBtn">Reset everything for a new job</button>
+
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+  const CATEGORIES = [
+    {
+      id: 'women',
+      label: "Women's",
+      title: "Women's Bathroom",
+      icon: '🚺',
+      items: [
+        "Paper Towels Bin Bag",
+        "Paper Towels",
+        "Sanitary Bin Bag",
+        "Toilet Rolls",
+        "Toilet Rolls (Disability Stall)"
+      ],
+      defaultTotal: 2
+    },
+    {
+      id: 'men',
+      label: "Men's",
+      title: "Men's Bathroom",
+      icon: '🚹',
+      items: [
+        "Paper Towels Bin Bag",
+        "Paper Towels",
+        "Urinal Wafer",
+        "Toilet Rolls",
+        "Toilet Rolls (Disability Stall)"
+      ],
+      defaultTotal: 2
+    },
+    {
+      id: 'disabled',
+      label: "Disabled",
+      title: "Disabled Toilet",
+      icon: '♿',
+      items: [
+        "Sanitary Bin Bag",
+        "Trash Bin Bag",
+        "Toilet Rolls"
+      ],
+      defaultTotal: 3
+    }
+  ];
+
+  // state[categoryId] = { current: {item: count}, totals: {item: count}, logged: n, total: n }
+  const state = {};
+  CATEGORIES.forEach(cat => {
+    state[cat.id] = {
+      current: Object.fromEntries(cat.items.map(i => [i, 0])),
+      totals: Object.fromEntries(cat.items.map(i => [i, 0])),
+      logged: 0,
+      total: cat.defaultTotal
+    };
+  });
+
+  let activeCat = CATEGORIES[0].id;
+  let summaryOpen = false;
+
+  const tabsEl = document.getElementById('tabs');
+  const catHeadEl = document.getElementById('catHead');
+  const bannerEl = document.getElementById('instanceBanner');
+  const listEl = document.getElementById('itemList');
+  const toastEl = document.getElementById('toast');
+
+  function getCat(id){ return CATEGORIES.find(c => c.id === id); }
+
+  function showToast(msg){
+    toastEl.textContent = msg;
+    toastEl.classList.add('show');
+    clearTimeout(showToast._t);
+    showToast._t = setTimeout(() => toastEl.classList.remove('show'), 1600);
+  }
+
+  function renderTabs(){
+    tabsEl.innerHTML = '';
+    CATEGORIES.forEach(cat => {
+      const s = state[cat.id];
+      const div = document.createElement('div');
+      div.className = 'tab' + (cat.id === activeCat ? ' active' : '');
+      div.innerHTML = `
+        <div class="tab-name">${cat.icon} ${cat.label}</div>
+        <div class="tab-progress">${s.logged}/${s.total} done</div>
+      `;
+      div.onclick = () => { activeCat = cat.id; renderAll(); };
+      tabsEl.appendChild(div);
+    });
+    // fourth grid slot: summary quick-jump (kept empty spacer for balance on wide screens)
+  }
+  tabsEl.style.gridTemplateColumns = `repeat(${CATEGORIES.length}, 1fr)`;
+
+  function renderCatHead(){
+    const cat = getCat(activeCat);
+    const s = state[cat.id];
+    catHeadEl.innerHTML = `
+      <div class="cat-head">
+        <div class="cat-title">${cat.icon} ${cat.title}</div>
+        <div class="cat-count">
+          Logged
+          <div class="stepper-mini">
+            <button id="loggedMinus">–</button>
+          </div>
+          <b id="loggedVal">${s.logged}</b> / <b>${s.total}</b>
+          <div class="stepper-mini">
+            <button id="loggedPlus">+</button>
+          </div>
+        </div>
+      </div>
+    `;
+    document.getElementById('loggedMinus').onclick = () => {
+      s.logged = Math.max(0, s.logged - 1);
+      renderAll();
+    };
+    document.getElementById('loggedPlus').onclick = () => {
+      s.logged = Math.min(s.total, s.logged + 1);
+      renderAll();
+    };
+  }
+
+  function renderBanner(){
+    const cat = getCat(activeCat);
+    const s = state[cat.id];
+    if (s.logged >= s.total){
+      bannerEl.innerHTML = `<div class="instance-banner done">✓ All ${s.total} ${cat.label.toLowerCase()} bathrooms logged for this job</div>`;
+    } else {
+      const num = s.logged + 1;
+      bannerEl.innerHTML = `<div class="instance-banner">🧽 Checking ${cat.label} bathroom ${num} of ${s.total} — tally what needs restocking</div>`;
+    }
+  }
+
+  function renderItems(){
+    const cat = getCat(activeCat);
+    const s = state[cat.id];
+    listEl.innerHTML = '';
+    cat.items.forEach(name => {
+      const count = s.current[name];
+      const row = document.createElement('div');
+      row.className = 'item' + (count > 0 ? ' needs' : '');
+      row.innerHTML = `
+        <div class="item-name">${name}${count > 0 ? '<span class="flag">Needs restock</span>' : ''}</div>
+        <div class="stepper">
+          <button class="minus" data-item="${name}" data-dir="-1">–</button>
+          <div class="count">${count}</div>
+          <button class="plus" data-item="${name}" data-dir="1">+</button>
+        </div>
+      `;
+      listEl.appendChild(row);
+    });
+    listEl.querySelectorAll('button').forEach(btn => {
+      btn.onclick = () => {
+        const item = btn.dataset.item;
+        const dir = parseInt(btn.dataset.dir, 10);
+        s.current[item] = Math.max(0, Math.min(99, s.current[item] + dir));
+        renderItems();
+      };
+    });
+  }
+
+  function renderSummary(){
+    const content = document.getElementById('summaryContent');
+    let html = '';
+    let anyNeeded = false;
+    CATEGORIES.forEach(cat => {
+      const s = state[cat.id];
+      html += `<div class="summary-group"><h4>${cat.icon} ${cat.title}${s.logged ? ` &middot; ${s.logged} logged` : ''}</h4>`;
+      cat.items.forEach(item => {
+        const n = s.totals[item];
+        if (n > 0) anyNeeded = true;
+        html += `<div class="summary-row${n === 0 ? ' zero' : ''}"><span>${item}</span><span class="n">${n}</span></div>`;
+      });
+      html += `</div>`;
+    });
+    if (!anyNeeded){
+      html = `<div class="summary-empty">Nothing logged yet — log a bathroom to build your restock list.</div>` + html;
+    }
+    content.innerHTML = html;
+  }
+
+  function renderAll(){
+    renderTabs();
+    renderCatHead();
+    renderBanner();
+    renderItems();
+    renderSummary();
+  }
+
+  // Log bathroom: adds the current tally into this category's running totals
+  // and advances the "logged" progress count. It does NOT touch the current
+  // counters — they stay on screen until you hit Reset.
+  document.getElementById('logBtn').onclick = () => {
+    const cat = getCat(activeCat);
+    const s = state[cat.id];
+    const anyCounted = cat.items.some(i => s.current[i] > 0);
+    cat.items.forEach(i => { s.totals[i] += s.current[i]; });
+    if (s.logged < s.total) s.logged += 1;
+    showToast(anyCounted ? 'Logged — tally added ✓' : 'Logged — all stocked ✓');
+    renderAll();
+  };
+
+  // Reset: clears the current tally counters and this category's running
+  // restock totals — but leaves the "Logged X/Y" progress count untouched,
+  // since that tracks how many bathrooms you've physically checked.
+  document.getElementById('resetBtn').onclick = () => {
+    const cat = getCat(activeCat);
+    const s = state[cat.id];
+    cat.items.forEach(i => { s.current[i] = 0; s.totals[i] = 0; });
+    showToast('Reset — tally cleared');
+    renderAll();
+  };
+
+  document.getElementById('summaryToggle').onclick = () => {
+    summaryOpen = !summaryOpen;
+    document.getElementById('summaryToggle').classList.toggle('open', summaryOpen);
+    document.getElementById('summaryBody').classList.toggle('open', summaryOpen);
+  };
+
+  document.getElementById('resetAllBtn').onclick = () => {
+    if (!confirm('Reset all tallies, logs and progress for every bathroom? This clears the whole job.')) return;
+    CATEGORIES.forEach(cat => {
+      state[cat.id] = {
+        current: Object.fromEntries(cat.items.map(i => [i, 0])),
+        totals: Object.fromEntries(cat.items.map(i => [i, 0])),
+        logged: 0,
+        total: cat.defaultTotal
+      };
+    });
+    showToast('Job reset');
+    renderAll();
+  };
+
+  renderAll();
+</script>
+</body>
+</html>
